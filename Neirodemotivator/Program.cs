@@ -11,9 +11,10 @@ namespace Neirodemotivator;
 
 public class Program
 {
-    private static string _token = "6530487214:AAHgWGBKKdEU2IBHv0Yh72Ms4ZfkXuTjt5A";
+    private static string _token = "MyBotToken";
     public static TelegramBotClient BotClient;
     public static int ControlVariable = 0;
+    public static int CheckPhotoVariable = 0;
     public static DataNeiro dt;
     public static Chat HelpBot = new Chat();
     public static void Main(string[] args)
@@ -42,17 +43,25 @@ public class Program
                         var fileInfo = await botClient.GetFileAsync(field);
                         var filePath = fileInfo.FilePath;
 
-
-                        string destinationFilePath = @"D:\CheckFolder\1.jpg";
+                        string hash = Guid.NewGuid().ToString().Remove(5);
+                        string destinationFilePath = @$"D:\CheckFolder\{hash}.jpg";
                         await using FileStream fileStream = System.IO.File.OpenWrite(destinationFilePath);
                         await botClient.DownloadFileAsync(filePath, fileStream);
                         fileStream.Close();
                         dt.DestinationPhoto = destinationFilePath;
+                        CheckPhotoVariable = 1;
 
                         return;
                     }
                     else
                     {
+                        if (CheckPhotoVariable == 1)
+                        {
+                            ControlVariable = 0;
+                            await botClient.SendTextMessageAsync(message.Chat.Id, "Следуй инструкциям! После картинки нужно отправить текст");
+                            CheckPhotoVariable = 0;
+                            return;
+                        }
                         ControlVariable = 0;
 
                         var field = update.Message.Photo.Last().FileId;
@@ -69,7 +78,7 @@ public class Program
 
                         string backgroundImagePath = @"D:\CheckFolder\sample.jpg";
                         string overlayImagePath = dt.DestinationPhoto;
-                        int rectangleX = 77;
+                        int rectangleX = 79;
                         int rectangleY = 50;
                         int rectangleWidth = 652;
                         int rectangleHeight = 437;
@@ -180,10 +189,16 @@ public class Program
             }
             catch (Exception ex) 
             {
-                Console.WriteLine("Exception in Update method: " + ex.Message);
-                Console.WriteLine(ex.StackTrace);
-                await botClient.SendTextMessageAsync(message.Chat.Id, "Попробуйте повторить попытку через 10 секунд");
-                
+                if (ex.Message == "Value cannot be null. (Parameter 'path')")
+                {
+                    await botClient.SendTextMessageAsync(message.Chat.Id, "Следуй инструкциям! После текста нужно отправить картинку");
+                }
+                else
+                {
+                    Console.WriteLine("Exception in Update method: " + ex.Message);
+                    Console.WriteLine(ex.StackTrace);
+                    await botClient.SendTextMessageAsync(message.Chat.Id, "Попробуйте повторить попытку через 10 секунд");
+                }
             }
         }
     }
