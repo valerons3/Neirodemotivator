@@ -40,6 +40,10 @@
         "net7.0": {
           "targetAlias": "net7.0",
           "dependencies": {
+            "System.Drawing.Common": {
+              "target": "Package",
+              "version": "[8.0.1, )"
+            },
             "telegram.bot": {
               "target": "Package",
               "version": "[19.0.0, )"

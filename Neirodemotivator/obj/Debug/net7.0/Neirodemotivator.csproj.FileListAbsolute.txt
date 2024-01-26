@@ -16,3 +16,6 @@ D:\Visual Project\Neirodemotivator\Neirodemotivator\obj\Debug\net7.0\refint\Neir
 D:\Visual Project\Neirodemotivator\Neirodemotivator\obj\Debug\net7.0\Neirodemotivator.pdb
 D:\Visual Project\Neirodemotivator\Neirodemotivator\obj\Debug\net7.0\Neirodemotivator.genruntimeconfig.cache
 D:\Visual Project\Neirodemotivator\Neirodemotivator\obj\Debug\net7.0\ref\Neirodemotivator.dll
+D:\Visual Project\Neirodemotivator\Neirodemotivator\bin\Debug\net7.0\Microsoft.Win32.SystemEvents.dll
+D:\Visual Project\Neirodemotivator\Neirodemotivator\bin\Debug\net7.0\System.Drawing.Common.dll
+D:\Visual Project\Neirodemotivator\Neirodemotivator\bin\Debug\net7.0\runtimes\win\lib\net7.0\Microsoft.Win32.SystemEvents.dll

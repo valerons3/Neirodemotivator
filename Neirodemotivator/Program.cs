@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Threading.Tasks;
 using System.IO;
+using System.Drawing;
+using System.Drawing.Drawing2D;
+using System.Drawing.Imaging;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 
@@ -26,71 +29,161 @@ public class Program
         if (update.Message != null)
         {
             var message = update.Message;
-            if (message.Photo != null)
+            try
             {
-                if (ControlVariable == 0)
+                if (message.Photo != null)
                 {
-                    dt = new DataNeiro();
-                    await botClient.SendTextMessageAsync(message.Chat.Id, "Теперь отправь текст");
-                    ControlVariable = 1;
-                    var field = update.Message.Photo.Last().FileId;
-                    var fileInfo = await botClient.GetFileAsync(field);
-                    var filePath = fileInfo.FilePath;
+                    if (ControlVariable == 0)
+                    {
+                        dt = new DataNeiro();
+                        await botClient.SendTextMessageAsync(message.Chat.Id, "Теперь отправь текст");
+                        ControlVariable = 1;
+                        var field = update.Message.Photo.Last().FileId;
+                        var fileInfo = await botClient.GetFileAsync(field);
+                        var filePath = fileInfo.FilePath;
 
-                    string destinationFilePath = @"D:\CheckFolder\1.png";
-                    await using FileStream fileStream = System.IO.File.OpenWrite(destinationFilePath);
-                    await botClient.DownloadFileAsync(filePath, fileStream);
-                    fileStream.Close();
-                    dt.DestinationPhoto = destinationFilePath;
 
-                    return;
+                        string destinationFilePath = @"D:\CheckFolder\1.jpg";
+                        await using FileStream fileStream = System.IO.File.OpenWrite(destinationFilePath);
+                        await botClient.DownloadFileAsync(filePath, fileStream);
+                        fileStream.Close();
+                        dt.DestinationPhoto = destinationFilePath;
+
+                        return;
+                    }
+                    else
+                    {
+                        ControlVariable = 0;
+
+                        var field = update.Message.Photo.Last().FileId;
+                        var fileInfo = await botClient.GetFileAsync(field);
+                        var filePath = fileInfo.FilePath;
+
+                        string hash = Guid.NewGuid().ToString().Remove(5);
+                        string destinationFilePath = @$"D:\CheckFolder\{hash}.jpg";
+                        await using FileStream fileStream = System.IO.File.OpenWrite(destinationFilePath);
+                        await botClient.DownloadFileAsync(filePath, fileStream);
+                        fileStream.Close();
+                        dt.DestinationPhoto = destinationFilePath;
+                        //логика демотиватора
+
+                        string backgroundImagePath = @"D:\CheckFolder\sample.jpg";
+                        string overlayImagePath = dt.DestinationPhoto;
+                        int rectangleX = 77;
+                        int rectangleY = 50;
+                        int rectangleWidth = 652;
+                        int rectangleHeight = 437;
+
+                        string hash2 = Guid.NewGuid().ToString().Remove(5);
+                        
+                        Bitmap backgroundImage = new Bitmap(backgroundImagePath);
+                        Bitmap overlayImage = new Bitmap(overlayImagePath);
+                        using (Graphics g = Graphics.FromImage(backgroundImage))
+                        {
+                            g.DrawImage(overlayImage, new Rectangle(rectangleX, rectangleY, rectangleWidth, rectangleHeight));
+                        }
+                        string outputImagePath = @$"D:\CheckFolder\{hash2}.jpg";
+                        backgroundImage.Save(outputImagePath, ImageFormat.Jpeg);
+
+
+                        PointF firstLocation = new PointF(100, 510);
+
+                        string imageFilePath = outputImagePath;
+                        Bitmap bitmap = (Bitmap)Image.FromFile(imageFilePath);
+
+                        using (Graphics graphics = Graphics.FromImage(bitmap))
+                        {
+                            using (Font arialFont = new Font("Arial", 50))
+                            {
+                                graphics.DrawString(dt.Text, arialFont, Brushes.White, firstLocation);
+                            }
+                        }
+
+                        string hash3 = Guid.NewGuid().ToString().Remove(5);
+                        string resultPhotoPath = @$"D:\CheckFolder\{hash3}.jpg";
+                        bitmap.Save(resultPhotoPath);
+
+
+                        await using Stream stream = System.IO.File.OpenRead(resultPhotoPath);
+                        await botClient.SendPhotoAsync(message.Chat.Id, InputFile.FromStream(stream, "3.jpg"));
+
+
+                        dt = new DataNeiro();
+                        return;
+                    }
                 }
-                else
+                if (message.Text != null)
                 {
-                    ControlVariable = 0;
+                    if (message.Text == "/start")
+                    {
+                        await botClient.SendTextMessageAsync(message.Chat.Id, "Привет! Это бот демотиватор\nСначала отправь картинку или текст, а потом следуй инструкциям");
+                        return;
+                    }
+                    if (ControlVariable == 0)
+                    {
+                        dt = new DataNeiro();
+                        dt.Text = message.Text;
+                        await botClient.SendTextMessageAsync(message.Chat.Id, "Теперь отправь картинку");
+                        ControlVariable = 1;
+                        return;
+                    }
+                    else
+                    {
+                        ControlVariable = 0;
+                        dt.Text = message.Text;
 
-                    var field = update.Message.Photo.Last().FileId;
-                    var fileInfo = await botClient.GetFileAsync(field);
-                    var filePath = fileInfo.FilePath;
+                        //логика демотиватора
+                        string backgroundImagePath = @"D:\CheckFolder\sample.jpg";
+                        string overlayImagePath = dt.DestinationPhoto;
+                        int rectangleX = 77;
+                        int rectangleY = 50;
+                        int rectangleWidth = 652;
+                        int rectangleHeight = 437;
 
-                    string destinationFilePath = @$"D:\CheckFolder\1.png";
-                    await using FileStream fileStream = System.IO.File.OpenWrite(destinationFilePath);
-                    await botClient.DownloadFileAsync(filePath, fileStream);
-                    fileStream.Close();
-                    dt.DestinationPhoto = destinationFilePath;
-                    //логика демотиватора
+                        string hash2 = Guid.NewGuid().ToString().Remove(5);
 
-                    await using Stream stream = System.IO.File.OpenRead(dt.DestinationPhoto);
-                    await botClient.SendPhotoAsync(message.Chat.Id, InputFile.FromStream(stream, "1.png"),
-                        caption: dt.Text);
+                        Bitmap backgroundImage = new Bitmap(backgroundImagePath);
+                        Bitmap overlayImage = new Bitmap(overlayImagePath);
+                        using (Graphics g = Graphics.FromImage(backgroundImage))
+                        {
+                            g.DrawImage(overlayImage, new Rectangle(rectangleX, rectangleY, rectangleWidth, rectangleHeight));
+                        }
+                        string outputImagePath = @$"D:\CheckFolder\{hash2}.jpg";
+                        backgroundImage.Save(outputImagePath, ImageFormat.Jpeg);
 
-                    dt = new DataNeiro();
-                    return;
+
+                        PointF firstLocation = new PointF(100, 510);
+
+                        string imageFilePath = outputImagePath;
+                        Bitmap bitmap = (Bitmap)Image.FromFile(imageFilePath);
+
+                        using (Graphics graphics = Graphics.FromImage(bitmap))
+                        {
+                            using (Font arialFont = new Font("Arial", 45))
+                            {
+                                graphics.DrawString(dt.Text, arialFont, Brushes.White, firstLocation);
+                            }
+                        }
+
+                        string hash3 = Guid.NewGuid().ToString().Remove(5);
+                        string resultPhotoPath = @$"D:\CheckFolder\{hash3}.jpg";
+                        bitmap.Save(resultPhotoPath);
+
+
+                        await using Stream stream = System.IO.File.OpenRead(resultPhotoPath);
+                        await botClient.SendPhotoAsync(message.Chat.Id, InputFile.FromStream(stream, "3.jpg"));
+
+                        dt = new DataNeiro();
+                        return;
+                    }
                 }
             }
-            if (message.Text != null)
+            catch (Exception ex) 
             {
-                if (ControlVariable == 0)
-                {
-                    dt = new DataNeiro();
-                    dt.Text = message.Text;
-                    await botClient.SendTextMessageAsync(message.Chat.Id, "Теперь отправь картинку");
-                    ControlVariable = 1;
-                    return;
-                }
-                else
-                {
-                    ControlVariable = 0;
-                    dt.Text = message.Text;
-
-                    //логика демотиватора
-                    await using Stream stream = System.IO.File.OpenRead(dt.DestinationPhoto);
-                    await botClient.SendPhotoAsync(message.Chat.Id, InputFile.FromStream(stream, "1.png"),
-                        caption: dt.Text);
-
-                    dt = new DataNeiro();
-                    return;
-                }
+                Console.WriteLine("Exception in Update method: " + ex.Message);
+                Console.WriteLine(ex.StackTrace);
+                await botClient.SendTextMessageAsync(message.Chat.Id, "Попробуйте повторить попытку через 10 секунд");
+                
             }
         }
     }
