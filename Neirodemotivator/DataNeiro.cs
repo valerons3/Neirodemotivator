@@ -10,5 +10,6 @@ namespace Neirodemotivator
     {
         public string Text { get; set; }
         public string DestinationPhoto { get; set; }
+
     }
 }

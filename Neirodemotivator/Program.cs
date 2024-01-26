@@ -9,13 +9,15 @@ namespace Neirodemotivator;
 public class Program
 {
     private static string _token = "6530487214:AAHgWGBKKdEU2IBHv0Yh72Ms4ZfkXuTjt5A";
-    public static TelegramBotClient _botClient;
+    public static TelegramBotClient BotClient;
     public static int ControlVariable = 0;
     public static DataNeiro dt;
+    public static Chat HelpBot = new Chat();
     public static void Main(string[] args)
     {
-        _botClient = new TelegramBotClient(_token);
-        _botClient.StartReceiving(Update, Error);
+        HelpBot.Id = 1016409811;
+        BotClient = new TelegramBotClient(_token);
+        BotClient.StartReceiving(Update, Error);
         Console.ReadLine();
     }
     
@@ -31,7 +33,6 @@ public class Program
                     dt = new DataNeiro();
                     await botClient.SendTextMessageAsync(message.Chat.Id, "Теперь отправь текст");
                     ControlVariable = 1;
-
                     var field = update.Message.Photo.Last().FileId;
                     var fileInfo = await botClient.GetFileAsync(field);
                     var filePath = fileInfo.FilePath;
@@ -58,7 +59,10 @@ public class Program
                     fileStream.Close();
                     dt.DestinationPhoto = destinationFilePath;
                     //логика демотиватора
-                    await botClient.SendTextMessageAsync(message.Chat.Id, "проверка что всё работает");
+
+                    await using Stream stream = System.IO.File.OpenRead(dt.DestinationPhoto);
+                    await botClient.SendPhotoAsync(message.Chat.Id, InputFile.FromStream(stream, "1.png"),
+                        caption: dt.Text);
 
                     dt = new DataNeiro();
                     return;
@@ -80,7 +84,9 @@ public class Program
                     dt.Text = message.Text;
 
                     //логика демотиватора
-                    await botClient.SendTextMessageAsync(message.Chat.Id, "проверка что всё работает");
+                    await using Stream stream = System.IO.File.OpenRead(dt.DestinationPhoto);
+                    await botClient.SendPhotoAsync(message.Chat.Id, InputFile.FromStream(stream, "1.png"),
+                        caption: dt.Text);
 
                     dt = new DataNeiro();
                     return;
